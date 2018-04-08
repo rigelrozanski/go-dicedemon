@@ -39,29 +39,32 @@ func main() {
 
 	// add three bits of "entropy" lawl
 	//    32 * 8 - len(bitsStr) = 3
-	bitsStr += "000"
+	checksumEntropys := []string{"000", "001", "010", "100", "110", "011", "101", "111"}
+	for _, checksumEntropy := range checksumEntropys {
+		fullBitsStr := bitsStr + checksumEntropy
 
-	// add a space to the bits every 8 characters
-	// to process the string bits to actual bytes
-	var spaced string
-	for i, s := range bitsStr {
-		spaced += string(s)
-		if (i+1)%8 == 0 {
-			spaced += " "
+		// add a space to the bits every 8 characters
+		// to process the string bits to actual bytes
+		var spaced string
+		for i, s := range fullBitsStr {
+			spaced += string(s)
+			if (i+1)%8 == 0 {
+				spaced += " "
+			}
 		}
+
+		// process the string bits to bytes
+		entropy := make([]byte, 32)
+		for i, s := range strings.Fields(spaced) {
+			n, _ := strconv.ParseUint(s, 2, 8)
+			b := byte(n)
+			entropy[i] = b
+		}
+
+		// Generate a mnemonic for memorization or user-friendly seeds
+		mnemonic, _ := bip39.NewMnemonic(entropy)
+
+		// Display mnemonic and keys
+		fmt.Println(mnemonic)
 	}
-
-	// process the string bits to bytes
-	entropy := make([]byte, 32)
-	for i, s := range strings.Fields(spaced) {
-		n, _ := strconv.ParseUint(s, 2, 8)
-		b := byte(n)
-		entropy[i] = b
-	}
-
-	// Generate a mnemonic for memorization or user-friendly seeds
-	mnemonic, _ := bip39.NewMnemonic(entropy)
-
-	// Display mnemonic and keys
-	fmt.Println(mnemonic)
 }
