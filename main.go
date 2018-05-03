@@ -7,14 +7,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tyler-smith/go-bip39"
+	"github.com/rigelrozanski/go-bip39"
 )
 
 func main() {
 
 	// get the words
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter 23 words seperated by spaces:\n")
+	fmt.Print("Enter all words (besides checksum word) seperated by spaces:\n")
 	text, err := reader.ReadString('\n')
 	if err != nil {
 		panic(err)
@@ -22,8 +22,10 @@ func main() {
 	text = strings.TrimRight(text, "\n") // trim the enter
 	words := strings.Split(text, " ")
 
-	if len(words) != 23 {
-		panic("I only take 23 words")
+	l := len(words)
+	if !(l == 2 || l == 5 || l == 8 || l == 11 ||
+		l == 14 || l == 17 || l == 20 || l == 23) {
+		panic("I will only take 2, 5, 8, 11, 14, 17, 20, or 23 words")
 	}
 
 	var bitsStr string
@@ -37,9 +39,11 @@ func main() {
 		bitsStr += wordBits
 	}
 
-	// add three bits of "entropy" lawl
-	//    32 * 8 - len(bitsStr) = 3
-	checksumEntropys := []string{"000", "001", "010", "100", "110", "011", "101", "111"}
+	// get all possible entropy that needs to be added
+	groupsOfThree := (l + 1) / 3
+	entropyLength := (32 * groupsOfThree) - (11 * (groupsOfThree*3 - 1))
+	checksumEntropys := getEntropyOptions(entropyLength)
+
 	for _, checksumEntropy := range checksumEntropys {
 		fullBitsStr := bitsStr + checksumEntropy
 
@@ -53,8 +57,11 @@ func main() {
 			}
 		}
 
+		lenEntropy := len(fullBitsStr) / 8
+		//fmt.Printf("debug len: %v fullBitsStr: %v\n", lenEntropy, fullBitsStr)
+
 		// process the string bits to bytes
-		entropy := make([]byte, 32)
+		entropy := make([]byte, lenEntropy)
 		for i, s := range strings.Fields(spaced) {
 			n, _ := strconv.ParseUint(s, 2, 8)
 			b := byte(n)
@@ -67,4 +74,18 @@ func main() {
 		// Display mnemonic and keys
 		fmt.Println(mnemonic)
 	}
+}
+
+// get the set of all possible entropy with a length of length :)
+func getEntropyOptions(length int) []string {
+	if length == 1 {
+		return []string{"0", "1"}
+	}
+
+	less1 := getEntropyOptions(length - 1)
+	var res []string
+	for _, resultless1 := range less1 {
+		res = append(res, "0"+resultless1, "1"+resultless1)
+	}
+	return res
 }
