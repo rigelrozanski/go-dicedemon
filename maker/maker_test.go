@@ -1,4 +1,4 @@
-package main
+package maker
 
 import (
 	"testing"
@@ -8,15 +8,15 @@ import (
 
 func TestGetEntropyOptions(t *testing.T) {
 
-	res := getEntropyOptions(1)
+	res := GetEntropyOptions(1)
 	exp := []string{"0", "1"}
 	require.Equal(t, exp, res)
 
-	res = getEntropyOptions(2)
+	res = GetEntropyOptions(2)
 	exp = []string{"00", "10", "01", "11"}
 	require.Equal(t, exp, res)
 
-	res = getEntropyOptions(3)
+	res = GetEntropyOptions(3)
 	exp = []string{"000", "100", "010", "110", "001", "101", "011", "111"}
 	require.Equal(t, exp, res)
 }
